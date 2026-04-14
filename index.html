@@ -56,11 +56,21 @@
   .time-input:focus{border-color:#818cf8;background:#0d1117;box-shadow:0 0 0 2px rgba(99,102,241,.2)}
   .time-input[readonly]{pointer-events:none;color:#6e7681}
 
+  /* ── School select ── */
+  .escuela-select{width:100%;border:1px solid #30363d;border-radius:7px;padding:5px 8px;font-size:12px;color:#c9d1d9;background:#161b22;outline:none;cursor:pointer;transition:.15s;color-scheme:dark;margin-bottom:6px}
+  .escuela-select:focus{border-color:#818cf8;box-shadow:0 0 0 2px rgba(99,102,241,.2)}
+  .escuela-select:disabled{color:#6e7681;cursor:default;opacity:.75}
+  .escuela-select option{background:#161b22;color:#c9d1d9}
+
   /* ── Notes ── */
   .note-input{width:100%;border:1px solid #30363d;border-radius:7px;padding:7px 9px;font-size:12px;color:#c9d1d9;background:#0d1117;resize:none;outline:none;min-height:52px;cursor:default;font-family:inherit;line-height:1.5;transition:.15s}
   .note-input:focus{border-color:#818cf8;box-shadow:0 0 0 2px rgba(99,102,241,.2)}
   .note-input[readonly]{pointer-events:none;color:#6e7681}
   .note-input::placeholder{color:#3d444d}
+
+  /* ── Save button ── */
+  .save-btn{font-size:13px;background:#166534;border:1px solid #16a34a;border-radius:8px;padding:6px 14px;cursor:pointer;color:#4ade80;transition:.15s;flex-shrink:0;font-weight:600}
+  .save-btn:hover{background:#15803d;border-color:#4ade80}
 
   footer{text-align:center;padding:20px 0 32px;font-size:12px;color:#3d444d}
   .saved-toast{position:fixed;bottom:20px;right:20px;background:#1e1f3b;color:#818cf8;border:1px solid #6366f1;border-radius:10px;padding:10px 18px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:200}
@@ -127,6 +137,7 @@
     <span class="week-label" id="weekLabel"></span>
     <button onclick="changeWeek(1)">&#8594;</button>
   </div>
+  <button class="save-btn" id="saveBtn" onclick="guardarCambios()" style="display:none">Guardar cambios</button>
   <button class="pin-btn" id="editBtn" onclick="toggleEdit()">&#9998; Editar</button>
 </header>
 <main>
@@ -149,16 +160,24 @@
 <script>
 const PIN = "1234";
 const DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
+const ESCUELAS = ["La Inmaculada", "Juan Marcos", "San Francisco", "Reemplazo"];
 let editMode = false;
 let currentWeekOffset = 0;
 
 function defaultDay() {
   return {
-    manana: { activo: true, entrada: "08:00", salida: "12:00" },
-    tarde:  { activo: true, entrada: "14:00", salida: "18:00" },
+    manana: { activo: true, entrada: "08:00", salida: "12:00", escuela: "" },
+    tarde:  { activo: true, entrada: "14:00", salida: "18:00", escuela: "" },
     notas: "",
     libre: false
   };
+}
+
+function buildSchoolOptions(selected) {
+  const blank = `<option value="">— Escuela —</option>`;
+  return blank + ESCUELAS.map(e =>
+    `<option value="${e}" ${selected === e ? "selected" : ""}>${e}</option>`
+  ).join("");
 }
 
 function migrateDay(dd) {
@@ -254,6 +273,10 @@ function renderWeek() {
               Activo
             </label>
           </div>
+          <select class="escuela-select" ${dis}
+            onchange="saveField('${key}','${wk}','manana','escuela',this.value)">
+            ${buildSchoolOptions(dd.manana.escuela || "")}
+          </select>
           <div class="time-rows">
             <div class="time-row">
               <span class="time-label">Entra</span>
@@ -277,6 +300,10 @@ function renderWeek() {
               Activo
             </label>
           </div>
+          <select class="escuela-select" ${dis}
+            onchange="saveField('${key}','${wk}','tarde','escuela',this.value)">
+            ${buildSchoolOptions(dd.tarde.escuela || "")}
+          </select>
           <div class="time-rows">
             <div class="time-row">
               <span class="time-label">Entra</span>
@@ -346,6 +373,7 @@ function toggleEdit() {
     editMode = false;
     document.getElementById("editBtn").textContent = "✏ Editar";
     document.getElementById("editBtn").classList.remove("active");
+    document.getElementById("saveBtn").style.display = "none";
     renderWeek();
   } else {
     document.getElementById("pinModal").classList.add("open");
@@ -360,12 +388,24 @@ function checkPin() {
     editMode = true;
     document.getElementById("editBtn").textContent = "✓ Editando";
     document.getElementById("editBtn").classList.add("active");
+    document.getElementById("saveBtn").style.display = "";
     closeModal();
     renderWeek();
   } else {
     document.getElementById("pinError").textContent = "PIN incorrecto";
     document.getElementById("pinInput").value = "";
   }
+}
+function guardarCambios() {
+  editMode = false;
+  document.getElementById("editBtn").textContent = "✏ Editar";
+  document.getElementById("editBtn").classList.remove("active");
+  document.getElementById("saveBtn").style.display = "none";
+  const t = document.getElementById("toast");
+  t.textContent = "✓ Cambios guardados";
+  t.classList.add("show");
+  setTimeout(() => { t.classList.remove("show"); t.textContent = "✓ Guardado"; }, 2200);
+  renderWeek();
 }
 function pinInput() {
   document.getElementById("pinError").textContent = "";
