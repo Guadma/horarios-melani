@@ -6,53 +6,75 @@
 <title>Horarios de Melani</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,sans-serif;background:#f5f7fa;min-height:100vh;color:#1a1a2e}
-  header{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-  .logo{font-size:17px;font-weight:600;color:#4f46e5}
-  .logo span{font-weight:400;color:#64748b;font-size:14px;margin-left:6px}
+  body{font-family:system-ui,sans-serif;background:#0d1117;min-height:100vh;color:#e6edf3}
+  header{background:#161b22;border-bottom:1px solid #30363d;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+  .logo{font-size:17px;font-weight:600;color:#818cf8}
+  .logo span{font-weight:400;color:#8b949e;font-size:14px;margin-left:6px}
   .week-nav{display:flex;align-items:center;gap:10px}
-  .week-nav button{background:none;border:1px solid #e2e8f0;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:#374151;transition:.15s}
-  .week-nav button:hover{background:#f1f5f9}
-  .week-label{font-size:14px;font-weight:500;color:#374151;min-width:160px;text-align:center}
-  .pin-btn{font-size:13px;background:none;border:1px solid #e2e8f0;border-radius:8px;padding:6px 12px;cursor:pointer;color:#64748b;transition:.15s}
-  .pin-btn:hover{background:#f1f5f9}
-  .pin-btn.active{background:#eef2ff;color:#4f46e5;border-color:#c7d2fe}
-  main{max-width:900px;margin:24px auto;padding:0 16px}
+  .week-nav button{background:none;border:1px solid #30363d;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:#c9d1d9;transition:.15s}
+  .week-nav button:hover{background:#21262d;border-color:#6366f1}
+  .week-label{font-size:14px;font-weight:500;color:#c9d1d9;min-width:160px;text-align:center}
+  .pin-btn{font-size:13px;background:none;border:1px solid #30363d;border-radius:8px;padding:6px 12px;cursor:pointer;color:#8b949e;transition:.15s}
+  .pin-btn:hover{background:#21262d;border-color:#6366f1}
+  .pin-btn.active{background:#1e1f3b;color:#818cf8;border-color:#6366f1}
+  main{max-width:980px;margin:24px auto;padding:0 16px}
   .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-  @media(max-width:600px){.grid{grid-template-columns:1fr}}
-  .day-card{background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:16px;display:flex;flex-direction:column;gap:10px;transition:.2s}
-  .day-card.today{border-color:#818cf8;box-shadow:0 0 0 2px #eef2ff}
+  @media(max-width:700px){.grid{grid-template-columns:1fr}}
+  .day-card{background:#161b22;border-radius:14px;border:1px solid #30363d;padding:16px;display:flex;flex-direction:column;gap:10px;transition:.2s}
+  .day-card.today{border-color:#6366f1;box-shadow:0 0 0 2px #1e1f3b,0 0 16px rgba(99,102,241,.15)}
+  .day-card.libre{opacity:.55}
+  .day-card.libre .schedule-blocks{opacity:.3;pointer-events:none}
   .day-header{display:flex;justify-content:space-between;align-items:center}
-  .day-name{font-size:13px;font-weight:600;color:#6366f1;text-transform:uppercase;letter-spacing:.05em}
-  .day-date{font-size:12px;color:#94a3b8}
-  .time-block{display:flex;flex-direction:column;gap:6px}
+  .day-name{font-size:13px;font-weight:600;color:#818cf8;text-transform:uppercase;letter-spacing:.05em}
+  .day-date{font-size:12px;color:#6e7681}
+
+  /* Libre toggle */
+  .libre-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#8b949e}
+  .libre-toggle input{accent-color:#6366f1;cursor:pointer}
+  .libre-badge{font-size:11px;background:#1c2128;color:#8b949e;border:1px solid #30363d;border-radius:5px;padding:3px 8px;font-weight:500;text-align:center}
+
+  /* Schedule blocks */
+  .schedule-blocks{display:flex;flex-direction:column;gap:8px}
+  .block{background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:10px 10px 8px}
+  .block-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .block-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .block-manana .block-label{color:#34d399}
+  .block-tarde .block-label{color:#f59e0b}
+  .block-toggle{display:flex;align-items:center;gap:5px;font-size:11px;color:#6e7681}
+  .block-toggle input{accent-color:#6366f1;cursor:pointer}
+  .block.inactive{opacity:.35}
+  .block.inactive .time-rows{pointer-events:none}
+  .time-rows{display:flex;flex-direction:column;gap:5px}
   .time-row{display:flex;align-items:center;gap:6px}
-  .time-label{font-size:11px;color:#94a3b8;width:28px;flex-shrink:0}
-  .time-input{width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:5px 8px;font-size:13px;color:#1e293b;background:#f8fafc;outline:none;cursor:default}
-  .time-input:focus{border-color:#818cf8;background:#fff;box-shadow:0 0 0 2px #eef2ff}
-  .time-input[readonly]{pointer-events:none;background:#f8fafc;color:#475569}
-  .note-input{width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:12px;color:#374151;background:#f8fafc;resize:none;outline:none;min-height:60px;cursor:default;font-family:inherit;line-height:1.5}
-  .note-input:focus{border-color:#818cf8;background:#fff;box-shadow:0 0 0 2px #eef2ff}
-  .note-input[readonly]{pointer-events:none;background:#f8fafc}
-  .libre-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b}
-  .libre-toggle input{accent-color:#6366f1}
-  .day-card.libre{opacity:.6}
-  .day-card.libre .time-block{opacity:.35;pointer-events:none}
-  .libre-badge{font-size:11px;background:#fef9c3;color:#854d0e;border-radius:5px;padding:2px 7px;font-weight:500}
-  footer{text-align:center;padding:20px 0 32px;font-size:12px;color:#94a3b8}
-  .saved-toast{position:fixed;bottom:20px;right:20px;background:#4f46e5;color:#fff;border-radius:10px;padding:10px 18px;font-size:13px;opacity:0;transition:.3s;pointer-events:none}
+  .time-label{font-size:11px;color:#6e7681;width:32px;flex-shrink:0}
+  .time-input{width:100%;border:1px solid #30363d;border-radius:7px;padding:5px 8px;font-size:13px;color:#c9d1d9;background:#161b22;outline:none;cursor:default;transition:.15s;color-scheme:dark}
+  .time-input:focus{border-color:#818cf8;background:#0d1117;box-shadow:0 0 0 2px rgba(99,102,241,.2)}
+  .time-input[readonly]{pointer-events:none;color:#6e7681}
+
+  /* Notes */
+  .note-input{width:100%;border:1px solid #30363d;border-radius:7px;padding:7px 9px;font-size:12px;color:#c9d1d9;background:#0d1117;resize:none;outline:none;min-height:52px;cursor:default;font-family:inherit;line-height:1.5;transition:.15s}
+  .note-input:focus{border-color:#818cf8;box-shadow:0 0 0 2px rgba(99,102,241,.2)}
+  .note-input[readonly]{pointer-events:none;color:#6e7681}
+  .note-input::placeholder{color:#3d444d}
+
+  footer{text-align:center;padding:20px 0 32px;font-size:12px;color:#3d444d}
+  .saved-toast{position:fixed;bottom:20px;right:20px;background:#1e1f3b;color:#818cf8;border:1px solid #6366f1;border-radius:10px;padding:10px 18px;font-size:13px;opacity:0;transition:.3s;pointer-events:none}
   .saved-toast.show{opacity:1}
-  .pin-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center}
+
+  /* PIN modal */
+  .pin-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
   .pin-modal.open{display:flex}
-  .pin-box{background:#fff;border-radius:16px;padding:28px 24px;width:280px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.12)}
-  .pin-box h3{font-size:16px;font-weight:600;color:#1e293b;margin-bottom:6px}
-  .pin-box p{font-size:13px;color:#64748b;margin-bottom:18px}
-  .pin-box input{width:100%;border:1px solid #e2e8f0;border-radius:9px;padding:10px;font-size:22px;text-align:center;letter-spacing:8px;outline:none;margin-bottom:10px}
-  .pin-box input:focus{border-color:#818cf8;box-shadow:0 0 0 2px #eef2ff}
-  .pin-error{font-size:12px;color:#ef4444;min-height:16px;margin-bottom:10px}
+  .pin-box{background:#161b22;border:1px solid #30363d;border-radius:16px;padding:28px 24px;width:280px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+  .pin-box h3{font-size:16px;font-weight:600;color:#e6edf3;margin-bottom:6px}
+  .pin-box p{font-size:13px;color:#8b949e;margin-bottom:18px}
+  .pin-box input{width:100%;border:1px solid #30363d;border-radius:9px;padding:10px;font-size:22px;text-align:center;letter-spacing:8px;outline:none;margin-bottom:10px;background:#0d1117;color:#e6edf3;color-scheme:dark}
+  .pin-box input:focus{border-color:#818cf8;box-shadow:0 0 0 2px rgba(99,102,241,.25)}
+  .pin-error{font-size:12px;color:#f85149;min-height:16px;margin-bottom:10px}
   .pin-actions{display:flex;gap:8px}
-  .btn-primary{flex:1;background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:10px;font-size:14px;cursor:pointer;font-weight:500}
-  .btn-secondary{flex:1;background:none;border:1px solid #e2e8f0;border-radius:9px;padding:10px;font-size:14px;cursor:pointer;color:#64748b}
+  .btn-primary{flex:1;background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:10px;font-size:14px;cursor:pointer;font-weight:500;transition:.15s}
+  .btn-primary:hover{background:#6366f1}
+  .btn-secondary{flex:1;background:none;border:1px solid #30363d;border-radius:9px;padding:10px;font-size:14px;cursor:pointer;color:#8b949e;transition:.15s}
+  .btn-secondary:hover{background:#21262d}
 </style>
 </head>
 <body>
@@ -69,7 +91,7 @@
   <div class="grid" id="grid"></div>
 </main>
 <footer>Horarios de Melani &mdash; NCM Digital</footer>
-<div class="saved-toast" id="toast">Guardado</div>
+<div class="saved-toast" id="toast">&#10003; Guardado</div>
 <div class="pin-modal" id="pinModal">
   <div class="pin-box">
     <h3>Modo edición</h3>
@@ -87,135 +109,231 @@ const PIN = "1234";
 const DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
 let editMode = false;
 let currentWeekOffset = 0;
-function getWeekDates(offset){
+
+function defaultDay() {
+  return {
+    manana: { activo: true, entrada: "08:00", salida: "12:00" },
+    tarde:  { activo: true, entrada: "14:00", salida: "18:00" },
+    notas: "",
+    libre: false
+  };
+}
+
+function migrateDay(dd) {
+  // Backwards compat: old format had top-level entrada/salida
+  if (dd && (dd.entrada !== undefined || dd.salida !== undefined)) {
+    return {
+      manana: { activo: true, entrada: dd.entrada || "08:00", salida: dd.salida || "12:00" },
+      tarde:  { activo: false, entrada: "14:00", salida: "18:00" },
+      notas: dd.notas || "",
+      libre: dd.libre || false
+    };
+  }
+  return dd;
+}
+
+function getWeekDates(offset) {
   const now = new Date();
   const day = now.getDay();
-  const diff = (day===0?-6:1-day);
+  const diff = (day === 0 ? -6 : 1 - day);
   const mon = new Date(now);
-  mon.setDate(now.getDate()+diff+offset*7);
-  return Array.from({length:5},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d});
+  mon.setDate(now.getDate() + diff + offset * 7);
+  return Array.from({length: 5}, (_, i) => {
+    const d = new Date(mon);
+    d.setDate(mon.getDate() + i);
+    return d;
+  });
 }
-function weekKey(offset){
-  const dates = getWeekDates(offset);
-  return dates[0].toISOString().slice(0,10);
+function weekKey(offset) {
+  return getWeekDates(offset)[0].toISOString().slice(0, 10);
 }
-function loadData(wk){
-  try{return JSON.parse(localStorage.getItem("melani_"+wk))||{}}catch{return{}}
+function loadData(wk) {
+  try { return JSON.parse(localStorage.getItem("melani_" + wk)) || {}; }
+  catch { return {}; }
 }
-function saveData(wk,data){
-  localStorage.setItem("melani_"+wk,JSON.stringify(data));
+function saveData(wk, data) {
+  localStorage.setItem("melani_" + wk, JSON.stringify(data));
   showToast();
 }
-function showToast(){
-  const t=document.getElementById("toast");
+function showToast() {
+  const t = document.getElementById("toast");
   t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),1800);
+  setTimeout(() => t.classList.remove("show"), 1800);
 }
-function formatDate(d){
-  return d.toLocaleDateString("es-AR",{day:"numeric",month:"short"});
+function formatDate(d) {
+  return d.toLocaleDateString("es-AR", {day: "numeric", month: "short"});
 }
-function isToday(d){
-  const n=new Date();
-  return d.getDate()===n.getDate()&&d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();
+function isToday(d) {
+  const n = new Date();
+  return d.getDate() === n.getDate() && d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
 }
-function renderWeek(){
+
+function renderWeek() {
   const wk = weekKey(currentWeekOffset);
   const dates = getWeekDates(currentWeekOffset);
   const data = loadData(wk);
   const mon = dates[0], fri = dates[4];
   document.getElementById("weekLabel").textContent =
-    formatDate(mon)+" – "+formatDate(fri)+" "+fri.getFullYear();
+    formatDate(mon) + " – " + formatDate(fri) + " " + fri.getFullYear();
   const grid = document.getElementById("grid");
-  grid.innerHTML="";
-  dates.forEach((d,i)=>{
-    const key = d.toISOString().slice(0,10);
-    const dd = data[key]||{entrada:"07:00",salida:"18:00",notas:"",libre:false};
+  grid.innerHTML = "";
+  dates.forEach((d, i) => {
+    const key = d.toISOString().slice(0, 10);
+    let dd = migrateDay(data[key]) || defaultDay();
     const today = isToday(d);
-    const ro = editMode?"":"readonly";
+    const ro = editMode ? "" : "readonly";
+    const dis = editMode ? "" : "disabled";
+
     const card = document.createElement("div");
-    card.className="day-card"+(today?" today":"")+(dd.libre?" libre":"");
-    card.innerHTML=`
+    card.className = "day-card" + (today ? " today" : "") + (dd.libre ? " libre" : "");
+
+    const mananaInactive = !dd.manana.activo ? " inactive" : "";
+    const tardeInactive  = !dd.tarde.activo  ? " inactive" : "";
+
+    card.innerHTML = `
       <div class="day-header">
         <span class="day-name">${DAYS[i]}</span>
         <span class="day-date">${formatDate(d)}</span>
       </div>
       <label class="libre-toggle">
-        <input type="checkbox" ${dd.libre?"checked":""} ${editMode?"":"disabled"}
+        <input type="checkbox" ${dd.libre ? "checked" : ""} ${dis}
           onchange="toggleLibre('${key}','${wk}',this)">
         Día libre
       </label>
-      ${dd.libre?`<span class="libre-badge">Sin clases</span>`:`
-      <div class="time-block">
-        <div class="time-row">
-          <span class="time-label">Entra</span>
-          <input class="time-input" type="time" value="${dd.entrada}" min="07:00" max="18:00" ${ro}
-            onchange="saveField('${key}','${wk}','entrada',this.value)">
+      ${dd.libre ? `<div class="libre-badge">Sin clases</div>` : `
+      <div class="schedule-blocks">
+        <!-- MAÑANA -->
+        <div class="block block-manana${mananaInactive}" id="block-m-${key}">
+          <div class="block-header">
+            <span class="block-label">Mañana</span>
+            <label class="block-toggle">
+              <input type="checkbox" ${dd.manana.activo ? "checked" : ""} ${dis}
+                onchange="toggleBloque('${key}','${wk}','manana',this)">
+              Activo
+            </label>
+          </div>
+          <div class="time-rows">
+            <div class="time-row">
+              <span class="time-label">Entra</span>
+              <input class="time-input" type="time" value="${dd.manana.entrada}" ${ro}
+                onchange="saveField('${key}','${wk}','manana','entrada',this.value)">
+            </div>
+            <div class="time-row">
+              <span class="time-label">Sale</span>
+              <input class="time-input" type="time" value="${dd.manana.salida}" ${ro}
+                onchange="saveField('${key}','${wk}','manana','salida',this.value)">
+            </div>
+          </div>
         </div>
-        <div class="time-row">
-          <span class="time-label">Sale</span>
-          <input class="time-input" type="time" value="${dd.salida}" min="07:00" max="18:00" ${ro}
-            onchange="saveField('${key}','${wk}','salida',this.value)">
+        <!-- TARDE -->
+        <div class="block block-tarde${tardeInactive}" id="block-t-${key}">
+          <div class="block-header">
+            <span class="block-label">Tarde</span>
+            <label class="block-toggle">
+              <input type="checkbox" ${dd.tarde.activo ? "checked" : ""} ${dis}
+                onchange="toggleBloque('${key}','${wk}','tarde',this)">
+              Activo
+            </label>
+          </div>
+          <div class="time-rows">
+            <div class="time-row">
+              <span class="time-label">Entra</span>
+              <input class="time-input" type="time" value="${dd.tarde.entrada}" ${ro}
+                onchange="saveField('${key}','${wk}','tarde','entrada',this.value)">
+            </div>
+            <div class="time-row">
+              <span class="time-label">Sale</span>
+              <input class="time-input" type="time" value="${dd.tarde.salida}" ${ro}
+                onchange="saveField('${key}','${wk}','tarde','salida',this.value)">
+            </div>
+          </div>
         </div>
       </div>
       <textarea class="note-input" placeholder="Notas..." ${ro}
-        onchange="saveField('${key}','${wk}','notas',this.value)">${dd.notas}</textarea>
+        onchange="saveNote('${key}','${wk}',this.value)">${dd.notas}</textarea>
       `}
     `;
     grid.appendChild(card);
   });
 }
-function saveField(dateKey,wk,field,val){
-  const data=loadData(wk);
-  if(!data[dateKey])data[dateKey]={entrada:"07:00",salida:"18:00",notas:"",libre:false};
-  data[dateKey][field]=val;
-  saveData(wk,data);
+
+function saveField(dateKey, wk, bloque, campo, val) {
+  const data = loadData(wk);
+  if (!data[dateKey]) data[dateKey] = defaultDay();
+  data[dateKey] = migrateDay(data[dateKey]) || defaultDay();
+  data[dateKey][bloque][campo] = val;
+  saveData(wk, data);
 }
-function toggleLibre(dateKey,wk,cb){
-  const data=loadData(wk);
-  if(!data[dateKey])data[dateKey]={entrada:"07:00",salida:"18:00",notas:"",libre:false};
-  data[dateKey].libre=cb.checked;
-  saveData(wk,data);
+
+function saveNote(dateKey, wk, val) {
+  const data = loadData(wk);
+  if (!data[dateKey]) data[dateKey] = defaultDay();
+  data[dateKey] = migrateDay(data[dateKey]) || defaultDay();
+  data[dateKey].notas = val;
+  saveData(wk, data);
+}
+
+function toggleBloque(dateKey, wk, bloque, cb) {
+  const data = loadData(wk);
+  if (!data[dateKey]) data[dateKey] = defaultDay();
+  data[dateKey] = migrateDay(data[dateKey]) || defaultDay();
+  data[dateKey][bloque].activo = cb.checked;
+  saveData(wk, data);
+  // Toggle inactive class without full re-render
+  const prefix = bloque === "manana" ? "m" : "t";
+  const blockEl = document.getElementById("block-" + prefix + "-" + dateKey);
+  if (blockEl) blockEl.classList.toggle("inactive", !cb.checked);
+}
+
+function toggleLibre(dateKey, wk, cb) {
+  const data = loadData(wk);
+  if (!data[dateKey]) data[dateKey] = defaultDay();
+  data[dateKey] = migrateDay(data[dateKey]) || defaultDay();
+  data[dateKey].libre = cb.checked;
+  saveData(wk, data);
   renderWeek();
 }
-function changeWeek(dir){
-  currentWeekOffset+=dir;
+
+function changeWeek(dir) {
+  currentWeekOffset += dir;
   renderWeek();
 }
-function toggleEdit(){
-  if(editMode){
-    editMode=false;
-    document.getElementById("editBtn").textContent="✏ Editar";
+
+function toggleEdit() {
+  if (editMode) {
+    editMode = false;
+    document.getElementById("editBtn").textContent = "✏ Editar";
     document.getElementById("editBtn").classList.remove("active");
     renderWeek();
   } else {
     document.getElementById("pinModal").classList.add("open");
-    document.getElementById("pinInput").value="";
-    document.getElementById("pinError").textContent="";
-    setTimeout(()=>document.getElementById("pinInput").focus(),100);
+    document.getElementById("pinInput").value = "";
+    document.getElementById("pinError").textContent = "";
+    setTimeout(() => document.getElementById("pinInput").focus(), 100);
   }
 }
-function checkPin(){
-  const v=document.getElementById("pinInput").value;
-  if(v===PIN){
-    editMode=true;
-    document.getElementById("editBtn").textContent="✓ Editando";
+function checkPin() {
+  const v = document.getElementById("pinInput").value;
+  if (v === PIN) {
+    editMode = true;
+    document.getElementById("editBtn").textContent = "✓ Editando";
     document.getElementById("editBtn").classList.add("active");
     closeModal();
     renderWeek();
   } else {
-    document.getElementById("pinError").textContent="PIN incorrecto";
-    document.getElementById("pinInput").value="";
+    document.getElementById("pinError").textContent = "PIN incorrecto";
+    document.getElementById("pinInput").value = "";
   }
 }
-function pinInput(){
-  document.getElementById("pinError").textContent="";
-  if(document.getElementById("pinInput").value.length===4)checkPin();
+function pinInput() {
+  document.getElementById("pinError").textContent = "";
+  if (document.getElementById("pinInput").value.length === 4) checkPin();
 }
-function closeModal(){
+function closeModal() {
   document.getElementById("pinModal").classList.remove("open");
 }
-document.getElementById("pinModal").addEventListener("click",function(e){
-  if(e.target===this)closeModal();
+document.getElementById("pinModal").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
 });
 renderWeek();
 </script>
