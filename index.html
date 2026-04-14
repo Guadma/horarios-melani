@@ -158,12 +158,18 @@
   </div>
 </div>
 <script>
+// ── Config ──
 const PIN = "1234";
 const DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
 const ESCUELAS = ["La Inmaculada", "Juan Marcos", "San Francisco", "Reemplazo"];
+const SUPA_URL = "https://lqonvykasavrnnurxzys.supabase.co";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxb252eWthc2F2cm5udXJ4enlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMjcyNjYsImV4cCI6MjA5MTcwMzI2Nn0.KoUnddch_4y8O_Yqv-fd_JHgo__UyIEPq4R7KV6nwGs";
+
 let editMode = false;
 let currentWeekOffset = 0;
+let weekCache = {}; // caché en memoria para no repetir fetches
 
+// ── Helpers de datos ──
 function defaultDay() {
   return {
     manana: { activo: true, entrada: "08:00", salida: "12:00", escuela: "" },
@@ -181,18 +187,78 @@ function buildSchoolOptions(selected) {
 }
 
 function migrateDay(dd) {
-  // Backwards compat: old format had top-level entrada/salida
-  if (dd && (dd.entrada !== undefined || dd.salida !== undefined)) {
+  if (!dd) return dd;
+  // Formato antiguo: tenía entrada/salida en el nivel raíz
+  if (dd.entrada !== undefined || dd.salida !== undefined) {
     return {
-      manana: { activo: true, entrada: dd.entrada || "08:00", salida: dd.salida || "12:00" },
-      tarde:  { activo: false, entrada: "14:00", salida: "18:00" },
+      manana: { activo: true, entrada: dd.entrada || "08:00", salida: dd.salida || "12:00", escuela: "" },
+      tarde:  { activo: false, entrada: "14:00", salida: "18:00", escuela: "" },
       notas: dd.notas || "",
       libre: dd.libre || false
     };
   }
+  // Asegurar campo escuela si falta (datos viejos sin ese campo)
+  if (dd.manana && dd.manana.escuela === undefined) dd.manana.escuela = "";
+  if (dd.tarde  && dd.tarde.escuela  === undefined) dd.tarde.escuela  = "";
   return dd;
 }
 
+// ── Supabase: carga y guarda ──
+async function loadData(wk) {
+  if (weekCache[wk] !== undefined) return weekCache[wk];
+  try {
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/horarios?week_key=eq.${encodeURIComponent(wk)}&select=data`,
+      { headers: { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY } }
+    );
+    const rows = await res.json();
+    let data = rows.length > 0 ? rows[0].data : null;
+    // Si no hay datos en Supabase, migrar desde localStorage (primera vez)
+    if (!data) {
+      try {
+        const local = JSON.parse(localStorage.getItem("melani_" + wk));
+        if (local && Object.keys(local).length > 0) {
+          data = local;
+          saveData(wk, data); // sube el dato local a la nube
+        }
+      } catch {}
+    }
+    weekCache[wk] = data || {};
+  } catch {
+    // Sin conexión: usar localStorage como fallback
+    try { weekCache[wk] = JSON.parse(localStorage.getItem("melani_" + wk)) || {}; }
+    catch { weekCache[wk] = {}; }
+  }
+  return weekCache[wk];
+}
+
+async function saveData(wk, data) {
+  weekCache[wk] = data;
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/horarios`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPA_KEY,
+        "Authorization": "Bearer " + SUPA_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates"
+      },
+      body: JSON.stringify({ week_key: wk, data, updated_at: new Date().toISOString() })
+    });
+  } catch {
+    // Sin conexión: guardar localmente como respaldo
+    localStorage.setItem("melani_" + wk, JSON.stringify(data));
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg || "✓ Guardado";
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+// ── Fechas ──
 function getWeekDates(offset) {
   const now = new Date();
   const day = now.getDay();
@@ -208,19 +274,6 @@ function getWeekDates(offset) {
 function weekKey(offset) {
   return getWeekDates(offset)[0].toISOString().slice(0, 10);
 }
-function loadData(wk) {
-  try { return JSON.parse(localStorage.getItem("melani_" + wk)) || {}; }
-  catch { return {}; }
-}
-function saveData(wk, data) {
-  localStorage.setItem("melani_" + wk, JSON.stringify(data));
-  showToast();
-}
-function showToast() {
-  const t = document.getElementById("toast");
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 1800);
-}
 function formatDate(d) {
   return d.toLocaleDateString("es-AR", {day: "numeric", month: "short"});
 }
@@ -229,10 +282,11 @@ function isToday(d) {
   return d.getDate() === n.getDate() && d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
 }
 
-function renderWeek() {
+// ── Render ──
+async function renderWeek() {
   const wk = weekKey(currentWeekOffset);
   const dates = getWeekDates(currentWeekOffset);
-  const data = loadData(wk);
+  const data = await loadData(wk);
   const mon = dates[0], fri = dates[4];
   document.getElementById("weekLabel").textContent =
     formatDate(mon) + " – " + formatDate(fri) + " " + fri.getFullYear();
@@ -326,48 +380,54 @@ function renderWeek() {
   });
 }
 
-function saveField(dateKey, wk, bloque, campo, val) {
-  const data = loadData(wk);
+// ── Guardar campos ──
+async function saveField(dateKey, wk, bloque, campo, val) {
+  const data = await loadData(wk);
   if (!data[dateKey]) data[dateKey] = defaultDay();
   data[dateKey] = migrateDay(data[dateKey]) || defaultDay();
   data[dateKey][bloque][campo] = val;
+  showToast();
   saveData(wk, data);
 }
 
-function saveNote(dateKey, wk, val) {
-  const data = loadData(wk);
+async function saveNote(dateKey, wk, val) {
+  const data = await loadData(wk);
   if (!data[dateKey]) data[dateKey] = defaultDay();
   data[dateKey] = migrateDay(data[dateKey]) || defaultDay();
   data[dateKey].notas = val;
+  showToast();
   saveData(wk, data);
 }
 
-function toggleBloque(dateKey, wk, bloque, cb) {
-  const data = loadData(wk);
+async function toggleBloque(dateKey, wk, bloque, cb) {
+  const data = await loadData(wk);
   if (!data[dateKey]) data[dateKey] = defaultDay();
   data[dateKey] = migrateDay(data[dateKey]) || defaultDay();
   data[dateKey][bloque].activo = cb.checked;
+  showToast();
   saveData(wk, data);
-  // Toggle inactive class without full re-render
   const prefix = bloque === "manana" ? "m" : "t";
   const blockEl = document.getElementById("block-" + prefix + "-" + dateKey);
   if (blockEl) blockEl.classList.toggle("inactive", !cb.checked);
 }
 
-function toggleLibre(dateKey, wk, cb) {
-  const data = loadData(wk);
+async function toggleLibre(dateKey, wk, cb) {
+  const data = await loadData(wk);
   if (!data[dateKey]) data[dateKey] = defaultDay();
   data[dateKey] = migrateDay(data[dateKey]) || defaultDay();
   data[dateKey].libre = cb.checked;
+  showToast();
   saveData(wk, data);
   renderWeek();
 }
 
+// ── Navegación ──
 function changeWeek(dir) {
   currentWeekOffset += dir;
   renderWeek();
 }
 
+// ── Modo edición ──
 function toggleEdit() {
   if (editMode) {
     editMode = false;
@@ -401,10 +461,7 @@ function guardarCambios() {
   document.getElementById("editBtn").textContent = "✏ Editar";
   document.getElementById("editBtn").classList.remove("active");
   document.getElementById("saveBtn").style.display = "none";
-  const t = document.getElementById("toast");
-  t.textContent = "✓ Cambios guardados";
-  t.classList.add("show");
-  setTimeout(() => { t.classList.remove("show"); t.textContent = "✓ Guardado"; }, 2200);
+  showToast("✓ Cambios guardados");
   renderWeek();
 }
 function pinInput() {
