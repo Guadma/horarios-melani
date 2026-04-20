@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Horarios Melani</string>
+    <string name="title_activity_main">Horarios Melani</string>
+    <string name="package_name">com.ncmdigital.horariosmelani</string>
+    <string name="custom_url_scheme">com.ncmdigital.horariosmelani</string>
+</resources>

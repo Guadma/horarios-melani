@@ -1,5 +1,5 @@
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#0d1117;min-height:100vh;color:#e6edf3}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,sans-serif;background:#0d1117;min-height:100vh;color:#e6edf3;-webkit-user-select:none;user-select:none;overscroll-behavior:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 
 /* ── Header ── */
 header{background:#161b22;border-bottom:1px solid #30363d;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:10}
@@ -60,6 +60,7 @@ main{max-width:1020px;margin:20px auto;padding:0 14px}
 .note-input:focus{border-color:#818cf8;box-shadow:0 0 0 2px rgba(99,102,241,.2)}
 .note-input[readonly]{color:#6e7681}
 .note-input::placeholder{color:#3d444d}
+input,textarea,select{-webkit-user-select:text;user-select:text}
 
 /* ── Save button ── */
 .save-btn{font-size:13px;background:#166534;border:1px solid #16a34a;border-radius:8px;padding:6px 14px;cursor:pointer;color:#4ade80;transition:.15s;flex-shrink:0;font-weight:600}

@@ -1,0 +1,11 @@
+{
+  "appId": "com.ncmdigital.horariosmelani",
+  "appName": "Horarios Melani",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#0d1117"
+  }
+}
