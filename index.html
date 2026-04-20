@@ -107,6 +107,37 @@
     .schedule-blocks .block{flex:1}
   }
 
+  /* ── Modo lectura: ocultar controles de edición ── */
+  body:not(.edit-mode) .libre-toggle,
+  body:not(.edit-mode) .block-toggle {
+    display: none;
+  }
+
+  /* Ocultar textarea de notas si está vacío en modo lectura */
+  body:not(.edit-mode) .note-input:placeholder-shown {
+    display: none;
+  }
+
+  /* En modo lectura, si un bloque está inactivo, ocultarlo completo */
+  body:not(.edit-mode) .block.inactive .escuela-select,
+  body:not(.edit-mode) .block.inactive .time-rows {
+    display: none;
+  }
+
+  body:not(.edit-mode) .block.inactive::after {
+    content: "Sin turno";
+    display: block;
+    font-size: 11px;
+    color: #6e7681;
+    text-align: center;
+    padding: 4px 0;
+    font-style: italic;
+  }
+
+  body:not(.edit-mode) .block.inactive {
+    opacity: 0.5;
+  }
+
   /* Móvil (< 480px): 1 columna */
   @media(max-width:479px){
     .grid{grid-template-columns:1fr}
@@ -478,6 +509,7 @@ function changeWeek(dir) {
 function toggleEdit() {
   if (editMode) {
     editMode = false;
+    document.body.classList.toggle("edit-mode", editMode);
     document.getElementById("editBtn").textContent = "✏ Editar";
     document.getElementById("editBtn").classList.remove("active");
     document.getElementById("saveBtn").style.display = "none";
@@ -493,6 +525,7 @@ function checkPin() {
   const v = document.getElementById("pinInput").value;
   if (v === PIN) {
     editMode = true;
+    document.body.classList.toggle("edit-mode", editMode);
     document.getElementById("editBtn").textContent = "✓ Editando";
     document.getElementById("editBtn").classList.add("active");
     document.getElementById("saveBtn").style.display = "";
@@ -505,6 +538,7 @@ function checkPin() {
 }
 function guardarCambios() {
   editMode = false;
+  document.body.classList.toggle("edit-mode", editMode);
   document.getElementById("editBtn").textContent = "✏ Editar";
   document.getElementById("editBtn").classList.remove("active");
   document.getElementById("saveBtn").style.display = "none";
