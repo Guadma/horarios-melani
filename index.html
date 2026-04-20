@@ -63,9 +63,9 @@
   .escuela-select option{background:#161b22;color:#c9d1d9}
 
   /* ── Notes ── */
-  .note-input{width:100%;border:1px solid #30363d;border-radius:7px;padding:7px 9px;font-size:12px;color:#c9d1d9;background:#0d1117;resize:none;outline:none;min-height:52px;cursor:default;font-family:inherit;line-height:1.5;transition:.15s}
+  .note-input{width:100%;border:1px solid #30363d;border-radius:7px;padding:7px 9px;font-size:12px;color:#c9d1d9;background:#0d1117;resize:none;outline:none;min-height:72px;cursor:default;font-family:inherit;line-height:1.5;transition:.15s;overflow:hidden}
   .note-input:focus{border-color:#818cf8;box-shadow:0 0 0 2px rgba(99,102,241,.2)}
-  .note-input[readonly]{pointer-events:none;color:#6e7681}
+  .note-input[readonly]{color:#6e7681}
   .note-input::placeholder{color:#3d444d}
 
   /* ── Save button ── */
@@ -451,11 +451,19 @@ async function renderWeek() {
         </div>
       </div>
       <textarea class="note-input" placeholder="Notas..." ${ro}
+        oninput="autoGrowNote(this)"
         onchange="saveNote('${key}','${wk}',this.value)">${dd.notas}</textarea>
       `}
     `;
     grid.appendChild(card);
   });
+  // Ajustar altura de textareas a su contenido tras renderizar
+  grid.querySelectorAll(".note-input").forEach(autoGrowNote);
+}
+
+function autoGrowNote(el) {
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
 }
 
 // ── Guardar campos ──
