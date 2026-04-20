@@ -271,8 +271,15 @@ function getWeekDates(offset) {
     return d;
   });
 }
+function toDateKey(d) {
+  // Formatea la fecha como YYYY-MM-DD en hora local (evita shift por UTC)
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 function weekKey(offset) {
-  return getWeekDates(offset)[0].toISOString().slice(0, 10);
+  return toDateKey(getWeekDates(offset)[0]);
 }
 function formatDate(d) {
   return d.toLocaleDateString("es-AR", {day: "numeric", month: "short"});
@@ -293,7 +300,7 @@ async function renderWeek() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
   dates.forEach((d, i) => {
-    const key = d.toISOString().slice(0, 10);
+    const key = toDateKey(d);
     let dd = migrateDay(data[key]) || defaultDay();
     const today = isToday(d);
     const ro = editMode ? "" : "readonly";
