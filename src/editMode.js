@@ -1,4 +1,4 @@
-import { PIN } from "./config.js";
+import { SUPA_KEY, VERIFY_PIN_URL, TOKEN_STORAGE_KEY } from "./config.js";
 import { state } from "./state.js";
 import { renderWeek } from "./render.js";
 import { showToast } from "./utils.js";
@@ -31,16 +31,37 @@ export function toggleEdit() {
   }
 }
 
-export function checkPin() {
-  const v = document.getElementById("pinInput").value;
-  if (v === PIN) {
+export async function checkPin() {
+  const input = document.getElementById("pinInput");
+  const errorEl = document.getElementById("pinError");
+  const pin = input.value;
+  errorEl.textContent = "Validando...";
+  try {
+    const res = await fetch(VERIFY_PIN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPA_KEY
+      },
+      body: JSON.stringify({ pin })
+    });
+    if (res.status === 401) {
+      errorEl.textContent = "PIN incorrecto";
+      input.value = "";
+      return;
+    }
+    if (!res.ok) {
+      errorEl.textContent = "Error del servidor";
+      return;
+    }
+    const { token } = await res.json();
+    sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
     state.editMode = true;
     applyEditModeUI();
     closeModal();
     renderWeek();
-  } else {
-    document.getElementById("pinError").textContent = "PIN incorrecto";
-    document.getElementById("pinInput").value = "";
+  } catch {
+    errorEl.textContent = "Error de red";
   }
 }
 
