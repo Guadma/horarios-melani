@@ -41,7 +41,8 @@ export async function checkPin() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "apikey": SUPA_KEY
+        "apikey": SUPA_KEY,
+        "Authorization": "Bearer " + SUPA_KEY
       },
       body: JSON.stringify({ pin })
     });
