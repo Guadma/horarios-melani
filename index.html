@@ -162,6 +162,36 @@
 const PIN = "1234";
 const DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
 const ESCUELAS = ["La Inmaculada", "Juan Marcos", "San Francisco", "Reemplazo"];
+
+// ── Template base: horarios fijos de Melani ──
+// Se aplica cuando una semana no tiene datos guardados en Supabase
+const BASE_TEMPLATE = {
+  1: { // Lunes
+    manana: { activo: true,  escuela: "San Francisco", entrada: "08:10", salida: "09:40" },
+    tarde:  { activo: false, escuela: "",              entrada: "14:00", salida: "18:00" },
+    notas: "", libre: false
+  },
+  2: { // Martes
+    manana: { activo: true,  escuela: "San Francisco", entrada: "07:30", salida: "12:40" },
+    tarde:  { activo: true,  escuela: "Juan Marcos",   entrada: "14:55", salida: "18:00" },
+    notas: "", libre: false
+  },
+  3: { // Miércoles
+    manana: { activo: true,  escuela: "Juan Marcos",   entrada: "07:15", salida: "12:00" },
+    tarde:  { activo: true,  escuela: "Juan Marcos",   entrada: "15:50", salida: "18:00" },
+    notas: "", libre: false
+  },
+  4: { // Jueves
+    manana: { activo: true,  escuela: "La Inmaculada", entrada: "07:00", salida: "08:35" },
+    tarde:  { activo: false, escuela: "",              entrada: "14:00", salida: "18:00" },
+    notas: "", libre: false
+  },
+  5: { // Viernes
+    manana: { activo: true,  escuela: "La Inmaculada", entrada: "09:25", salida: "11:35" },
+    tarde:  { activo: false, escuela: "",              entrada: "14:00", salida: "18:00" },
+    notas: "", libre: false
+  }
+};
 const SUPA_URL = "https://lqonvykasavrnnurxzys.supabase.co";
 const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxb252eWthc2F2cm5udXJ4enlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMjcyNjYsImV4cCI6MjA5MTcwMzI2Nn0.KoUnddch_4y8O_Yqv-fd_JHgo__UyIEPq4R7KV6nwGs";
 
@@ -170,13 +200,19 @@ let currentWeekOffset = 0;
 let weekCache = {}; // caché en memoria para no repetir fetches
 
 // ── Helpers de datos ──
-function defaultDay() {
-  return {
-    manana: { activo: true, entrada: "08:00", salida: "12:00", escuela: "" },
-    tarde:  { activo: true, entrada: "14:00", salida: "18:00", escuela: "" },
-    notas: "",
-    libre: false
-  };
+function defaultDay(diaSemana = 1) {
+  // diaSemana: 1=Lunes, 2=Martes, ..., 5=Viernes
+  const template = BASE_TEMPLATE[diaSemana];
+  if (!template) {
+    // Fallback genérico si se pide un día fuera del rango
+    return {
+      manana: { activo: true, entrada: "08:00", salida: "12:00", escuela: "" },
+      tarde:  { activo: true, entrada: "14:00", salida: "18:00", escuela: "" },
+      notas: "", libre: false
+    };
+  }
+  // Clonar para no mutar el template original
+  return JSON.parse(JSON.stringify(template));
 }
 
 function buildSchoolOptions(selected) {
@@ -301,7 +337,7 @@ async function renderWeek() {
   grid.innerHTML = "";
   dates.forEach((d, i) => {
     const key = toDateKey(d);
-    let dd = migrateDay(data[key]) || defaultDay();
+    let dd = migrateDay(data[key]) || defaultDay(i + 1);
     const today = isToday(d);
     const ro = editMode ? "" : "readonly";
     const dis = editMode ? "" : "disabled";
