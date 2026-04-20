@@ -297,10 +297,14 @@ function showToast(msg) {
 // ── Fechas ──
 function getWeekDates(offset) {
   const now = new Date();
-  const day = now.getDay();
-  const diff = (day === 0 ? -6 : 1 - day);
+  const day = now.getDay(); // 0=dom, 1=lun, ..., 6=sáb
+  let diff;
+  if (day === 0)      diff = 1;       // domingo → mañana es lunes
+  else if (day === 6) diff = 2;       // sábado → pasado mañana es lunes
+  else                diff = 1 - day; // lun-vie → lunes de esta semana
   const mon = new Date(now);
   mon.setDate(now.getDate() + diff + offset * 7);
+  mon.setHours(0, 0, 0, 0);
   return Array.from({length: 5}, (_, i) => {
     const d = new Date(mon);
     d.setDate(mon.getDate() + i);
